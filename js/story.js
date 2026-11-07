@@ -125,8 +125,8 @@ const Story=(()=>{
  function currentEvents(date=NOW()){const[m,d]=md(date);return EVENTS.filter(e=>inRange(m,d,e.from,e.to));}
  function eventLetters(){if(!S.evSeen)S.evSeen={};const y=NOW().getFullYear();for(const e of currentEvents()){const k=e.id+y;if(S.evSeen[k])continue;S.evSeen[k]=1;addMemory(`${e.name}を むかえた`,'scroll');const g=e.gift||{};
   const gifts=[];if(g.items)for(const i in g.items)gifts.push([i,g.items[i]]);if(g.furn)gifts.push(['f_'+g.furn,1]);
-  pushMail({from:'vil',sender:'そんちょう ハルさん',body:`{name}さんへ\n\n${e.letter}\n\nそんちょう ハル`,gift:gifts[0]?gifts[0][0]:null,n:gifts[0]?gifts[0][1]:1,coins:g.coins||0});
-  for(const x of gifts.slice(1))S.mailQ.push({from:'vil',sender:'むらの みんな',body:`{name}さんへ\n\n${e.name}の おすそわけです。\n\nむらの みんなより`,gift:x[0],n:x[1]});}}
+  pushMail({from:'vil',sender:'そんちょう ハルさん',body:`{name}さんへ\n\n${e.letter}${gifts.length||g.coins?'\nむらで わたしを みかけたら こえを かけてね。 みんなからの おすそわけが あるの。':''}\n\nそんちょう ハル`});
+  if(gifts.length||g.coins){const it={};gifts.forEach(([k,n])=>it[k]=(it[k]||0)+n);Post.hand('chief',{t:`${e.name}の おすそわけよ。 むらの みんなから。`,items:it,coins:g.coins||0});}}}
  function upcoming(days=45){const out=[];const base=NOW();for(let i=0;i<days;i++){const d=new Date(base);d.setDate(d.getDate()+i);const[m,dd]=md(d);
   for(const e of EVENTS)if(e.from[0]===m&&e.from[1]===dd||(i===0&&inRange(m,dd,e.from,e.to)))out.push({i,date:d,t:e.name,ev:e});
   for(const id in BIRTHDAYS){const b=BIRTHDAYS[id];if(b[0]===m&&b[1]===dd&&(isPresent(VIL[id])||VIL[id].chief))out.push({i,date:d,t:`${VIL[id].name}の たんじょうび`,bday:id});}}return out;}

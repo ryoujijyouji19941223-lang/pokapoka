@@ -73,11 +73,11 @@ function lifeUpdate(dt){
   if(a.t<=0&&!e.moving&&!e.path.length&&!G.lock)chooseAct(pa);}
 }
 function poseAct(pa,dt){
- const a=pa.ai,f=a.f,e=pa.e,t=a.at;const fx=f?f.x*TS:0,fy=f?f.y*TS:0,ex=e.tx*TS,ey=e.ty*TS;
+ const a=pa.ai,f=a.f,e=pa.e,t=a.at;const[fw,fh]=f?fdim(f):[1,1];const sx=f?f.x*TS:0,sy=f?f.y*TS:0,fx=sx+(fw-1)*8,fy=sy+(fh-1)*8,ex=e.tx*TS,ey=e.ty*TS;
  let vx=ex,vy=ey,flip=e.flip,o={},on=false;a.em-=dt;const em=(spr,every,d=1.2)=>{if(a.em<=0){a.em=every*(0.7+Math.random()*0.6);emote(e,spr,d);}};
  switch(a.type){
   case 'sleep':o.sleep=true;
-   if(f.id==='bed'){vx=fx;vy=fy+1;on=true;o.noShadow=true;o.still=true;}else if(f.id==='kotatsu'){vx=fx;vy=fy-2;on=true;o.noShadow=true;}else{o.noShadow=FURN[f.id].floor;}
+   if(f.id==='bed'){vx=fx;vy=sy+1;on=true;o.noShadow=true;o.still=true;}else if(f.id==='kotatsu'){vx=fx;vy=fy-2;on=true;o.noShadow=true;}else{o.noShadow=FURN[f.id].floor;}
    em(ZZZ,2.6,1.6);break;
   case 'eat':vx=fx;vy=fy-7;on=true;o.noShadow=true;o.dy=Math.floor(t*5)%2;em(HEART,4);pa.food=favOf(pa.mon);break;
   case 'sit':vx=fx;vy=fy-4;on=true;o.noShadow=true;em(NOTE,5);break;
@@ -86,10 +86,10 @@ function poseAct(pa,dt){
   case 'yarn':{f._ox=Math.sin(t*1.6)*7;vx=ex+Math.sin((t-0.5)*1.6)*5;flip=Math.cos((t-0.5)*1.6)<0;o.still=true;o.dy=-Math.abs(Math.sin(t*6))*1.5;em(HEART,4);break;}
   case 'drum':{const k=Math.floor(t/0.55);if(k!==a.ps){a.ps=k;e.jump=0.3;f._oy=1;emote(e,NOTE,0.8);}else f._oy=0;break;}
   case 'slide':{const p=t%3.2;on=true;o.noShadow=true;o.still=true;
-   if(p<1.0){vx=fx+8;vy=fy+6-p*12;flip=false;}else if(p<1.3){vx=fx+8;vy=fy-6;}
-   else if(p<2.0){const k=(p-1.3)/0.7;vx=fx+8-k*14;vy=fy-6+k*13;flip=true;}
-   else if(p<2.5){vx=fx-6;vy=fy+7;o.noShadow=false;if(a.ps!==Math.floor(t/3.2)){a.ps=Math.floor(t/3.2);emote(e,HEART,1);}}
-   else{const k=(p-2.5)/0.7;vx=fx-6+k*14;vy=fy+7-k;flip=false;o.noShadow=false;o.still=false;}
+   if(p<1.0){vx=sx+18;vy=sy+16-p*30;flip=false;}else if(p<1.3){const k=(p-1.0)/0.3;vx=sx+18-k*8;vy=sy-14;}
+   else if(p<2.0){const k=(p-1.3)/0.7;vx=sx+10-k*16;vy=sy-14+k*30;flip=true;}
+   else if(p<2.5){vx=sx-6;vy=sy+16;o.noShadow=false;if(a.ps!==Math.floor(t/3.2)){a.ps=Math.floor(t/3.2);emote(e,HEART,1);}}
+   else{const k=(p-2.5)/0.7;vx=sx-6+k*24;vy=sy+16;flip=false;o.noShadow=false;o.still=false;}
    break;}
   case 'stack':{const s=Math.floor(t/1.6)%5;if(s!==a.ps){if(s===0&&a.ps===4){puff(fx+8,fy+2,'#ffd040',8);emote(e,EXCL,1);}else{e.jump=0.3;}a.ps=s;}f._stack=s;break;}
   case 'watch':o.dy=Math.sin(t*1.5)*0.6;em(rnd([NOTE,HEART]),3.5);break;
@@ -102,7 +102,7 @@ function petSortY(pa){const a=pa.ai;if(a&&a.st==='act'&&pa.vis&&pa.vis.on&&a.f)r
 function drawHousePet(c,pa,ox,oy,i){const a=pa.ai;const act=a&&a.st==='act'&&pa.vis;
  drawMonAt(c,pa.mon.sp,pa.e,ox,oy,1.7+i,Object.assign({look:monLook(pa.mon)},act?pa.vis.o:{}));
  if(act&&pa.vis.food)c.drawImage(itemIcon(pa.vis.food),Math.round(pa.e.px-ox)+9,Math.round(pa.e.py-oy)+5,8,8);
- if(act&&a.type==='sleep'&&a.f&&a.f.id==='bed'){const B=furnSpr('bed');c.drawImage(B,0,12,B.width,B.height-12,a.f.x*TS-2-ox,a.f.y*TS-4-oy+12,B.width,B.height-12);}}
+ if(act&&a.type==='sleep'&&a.f&&a.f.id==='bed'){const B=furnSpr('bed');c.drawImage(B,0,15,B.width,B.height-15,a.f.x*TS-2-ox,a.f.y*TS-2-oy+15,B.width,B.height-15);}}
 function drawStack(c,dx,dy,n){const cols=['#ff6a6a','#5a9ae8','#5cbf5a','#ffd040'];for(let i=0;i<n;i++){const x=dx+8+(i%2?1:-1),y=dy+8-4*(i+1);c.fillStyle='#3b2a20';c.fillRect(x-1,y-1,7,6);c.fillStyle=cols[i%4];c.fillRect(x,y,5,4);}}
 function petInHouse(m){return(G.guests||[]).concat(G.party).find(p=>p.mon===m)||null;}
 

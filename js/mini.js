@@ -107,9 +107,9 @@ const Mini=(()=>{
  // ---------------- bakery ----------------
  function bakery(o){return Bakery.play(o);}
  async function villagerExtra(v,o){const d=S.daily;const h=NOW().getHours();
-  if(v.id==='bear'&&h>=7&&h<19&&!d.bakery&&(S.vil.bear&&S.vil.bear.f>=1)){const c=await UI.say('いまから いそがしく なるんだ。 おみせを ちょっと てつだって くれないかい？',Object.assign({},o,{choices:['てつだう！','また こんど']}));
+  if(false&&v.id==='bear'&&h>=7&&h<19&&!d.bakery&&(S.vil.bear&&S.vil.bear.f>=1)){const c=await UI.say('いまから いそがしく なるんだ。 おみせを ちょっと てつだって くれないかい？',Object.assign({},o,{choices:['てつだう！','また こんど']}));
    if(c===0){d.bakery=1;await bakery();await UI.say('たすかったよ！ また あした たのむよ！',o);return true;}}
-  if(v.id==='bear'&&h>=7&&h<19&&d.bakery===1){const c=await UI.say('おや、 また きてくれたのかい？ よかったら もう いちど おみせばん してみる？（おれいは すこし すくなめだけど）',Object.assign({},o,{choices:['やる！','きょうは もう いいや']}));
+  if(false&&v.id==='bear'&&h>=7&&h<19&&d.bakery===1){const c=await UI.say('おや、 また きてくれたのかい？ よかったら もう いちど おみせばん してみる？（おれいは すこし すくなめだけど）',Object.assign({},o,{choices:['やる！','きょうは もう いいや']}));
    if(c===0){await bakery({repeat:true});await UI.say('ありがとう！ きみが いると おみせが あかるく なるよ。',o);}else d.bakery=2;return true;}
   if(v.id==='riku'&&!S.flags.nushiTold&&S.flags.nushi){S.flags.nushiTold=1;await UI.sayAll(['えっ！？ かわの ぬしを つったって！？','す、 すごすぎる… {name}は つりの めいじんだ！ これ、 ぼくの たからもの… あげる！'].map(fmt),o);addItem('fossil');UI.toast('かせきを もらった！','fossil');return true;}
   return false;}

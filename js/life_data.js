@@ -144,5 +144,5 @@ const OMIKUJI = [
 const LUCKY_ITEM = ['りんご','ピンクの もの','まるい もの','あたたかい のみもの','ほしの もの','みどりの もの','ふわふわの もの','クッキー'];
 
 // letter from the chief introducing toys
-const TOY_LETTER = {from:'vil',sender:'そんちょう ハルさん',body:'{name}さんへ\n\nぷちっこたちは あそぶのが だいすきなの。\nおうちに おもちゃを おいてあげると、 るすの あいだも たのしく すごせるのよ。\nボールを ひとつ おくるわね。 つみきの つくりかたも かいておいたわ。\n\nそんちょう ハル',gift:'f_ball',n:1,recipe:'tsumiki'};
+const TOY_LETTER = {from:'vil',sender:'そんちょう ハルさん',body:'{name}さんへ\n\nぷちっこたちは あそぶのが だいすきなの。\nおうちに おもちゃを おいてあげると、 るすの あいだも たのしく すごせるのよ。\nボールを ひとつ おくるわね。 つみきの レシピも かいておいたわ。\n\nそんちょう ハル',gift:'f_ball',n:1,recipe:'tsumiki'};
 STORY[4].reward.recipes.push('petbed');

@@ -20,14 +20,19 @@ const UI=(()=>{
  function init(){
   $('#hCoin').src=url('ui_coin',()=>uiIcon('coin'));
   const bar=$('#bar');[['bag','もちもの',()=>bag()],['paw','なかま',()=>nakama()],['book','ずかん',()=>dex()],['scroll','おねがい',()=>questPanel()],['gear','メニュー',()=>menu()]].forEach(([ic,lb,fn])=>{
-   const b=el('button','bbtn');b.append(img('ui_'+ic,()=>uiIcon(ic),22));b.append(el('span',null,lb));b.onclick=()=>{Snd.init();if(G.lock||!G.ready)return;Snd.sfx('tap');fn();};bar.append(b);});
+   const b=el('button','bbtn');b.dataset.nav=ic;b.append(img('ui_'+ic,()=>uiIcon(ic),22));b.append(el('span',null,lb));
+   b.onclick=()=>{Snd.init();if(!G.ready)return;
+    // a bottom-bar panel is open: tapping another tab switches straight to it; tapping the same tab closes it
+    if(cur&&G.lock===1&&!G.photo&&!UI.decor){const same=cur.nav===ic&&cur.root;closePanel(true);if(same){Snd.sfx('close');return;}}else if(G.lock)return;
+    Snd.sfx('tap');fn();if(cur){cur.nav=ic;cur.root=true;}navMark();};bar.append(b);});
   $('#toolBtn').onclick=()=>{Snd.init();if(G.lock||!G.ready)return;const t=toolsAvail();G.tool=t[(t.indexOf(G.tool)+1)%t.length];Snd.sfx('tap');hud();
    toast(G.tool==='till'?'しごと：たがやす（じめんを タップ）':G.tool==='chop'?'しごと：きを きる（もりの きを タップ）':'しごと：なし');};
   $('#btnDecor').onclick=()=>{if(G.lock&&!UI.decor)return;decorToggle();};
   $('#btnWard').onclick=()=>{if(G.lock)return;if(UI.decor)decorToggle();SUI.wardrobe();};
   $('#camBtn').onclick=()=>{Snd.init();SUI.photo();};
+  $('#skyBtn').onclick=()=>{Snd.init();if(G.lock)return;Post.skyOpen();};
   $('#camBtn').append(img('ui_camera',()=>uiIcon('camera'),26));
-  $('#btnOut').onclick=()=>{if(G.lock)return;if(UI.decor)decorToggle();walkTo(DOOR_X[0],ROOM_H-1,()=>exitHouse());};
+  $('#btnOut').onclick=()=>{if(G.lock)return;if(UI.decor)decorToggle();walkTo(DOOR_X[0],ROOM_H-1,()=>G.scene==='inside'?Inside.exit():exitHouse());};
  }
  let lastW=null;
  function hud(){if(!S)return;const d=NOW();const h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');
@@ -60,14 +65,17 @@ const UI=(()=>{
  // ---------- panel ----------
  let cur=null;
  function panel(title,build,o={}){if(cur)closePanel(true);G.lock++;Snd.sfx('open');const p=el('div','panel win');const hd=el('div','phead');hd.append(el('div','ptitle',title));const x=el('button','pclose','×');x.onclick=()=>closePanel();hd.append(x);
-  const body=el('div','pbody');p.append(hd,body);$('#panels').append(p);cur={p,body,title,onClose:o.onClose};build(body,p);
+  const body=el('div','pbody');p.append(hd,body);$('#panels').append(p);cur={p,body,title,onClose:o.onClose,nav:navLast,root:false};build(body,p);navMark();
   if(lastClose&&lastClose.title===title&&performance.now()-lastClose.t<300)body.scrollTop=lastClose.top;return body;}
  let lastClose=null;
- function closePanel(silent){if(!cur)return;lastClose={title:cur.title,top:cur.body.scrollTop,t:performance.now()};cur.p.remove();G.lock--;if(!silent)Snd.sfx('close');const f=cur.onClose;cur=null;if(f&&!silent)f();}
+ function closePanel(silent){if(!cur)return;lastClose={title:cur.title,top:cur.body.scrollTop,t:performance.now()};navLast=cur.nav;cur.p.remove();G.lock--;if(!silent)Snd.sfx('close');const f=cur.onClose;cur=null;setTimeout(()=>{if(!cur)navLast=null;navMark();},0);if(f&&!silent)f();}
+ let navLast=null;
+ function navMark(){const k=cur?cur.nav:null;document.querySelectorAll('#bar .bbtn').forEach(b=>b.classList.toggle('on',!!k&&b.dataset.nav===k));}
 
  // ---------- villagers ----------
  async function talkVillager(vo){
   const v=vo.v,e=vo.e;vo.talking=true;e.path=[];const p=G.player;const dx=p.tx-e.tx;if(dx)e.flip=dx<0;
+  if(!v.visitor){try{await Post.handOver(v,{name:v.name,por:vilPor(v.id),pitch:v.pitch});}catch(err){console.error(err);}}
   if(v.chief){try{await talkChief(vo);}finally{vo.talking=false;}return;}
   if(v.visitor){try{await Story.talkVisitor(vo);}finally{vo.talking=false;}return;}
   const d=S.daily;const fr=S.vil[v.id]||(S.vil[v.id]={f:0,ms:0});const L=v.lines;const o={name:v.name,por:vilPor(v.id),pitch:v.pitch};
@@ -85,13 +93,14 @@ const UI=(()=>{
     else{const fs=Object.keys(FURN).filter(k=>!FURN[k].gift&&!FURN[k].craft);const f=fs[Math.floor(Math.random()*fs.length)];addItem('f_'+f);toast(`${FURN[f].name}を もらった！`,'f_'+f);Snd.sfx('get');}
     checkFriend(v,fr);}
    else await say(has?'そっか… また こんど おねがいね！':'そっか！ みつけたら おしえてね！',o);}
+  try{await Post.handOver(v,o);}catch(err){console.error(err);}
   vo.talking=false;
  }
- function checkFriend(v,fr){const lv=fr.f>=10?3:fr.f>=6?2:fr.f>=3?1:0;if(lv>fr.ms){fr.ms=lv;const fs=Object.keys(FURN).filter(k=>!FURN[k].gift&&!FURN[k].craft);const f=fs[(hashStr(v.id+lv))%fs.length];
+ function checkFriend(v,fr){const lv=fr.f>=20?3:fr.f>=12?2:fr.f>=5?1:0;if(lv>fr.ms){fr.ms=lv;const fs=Object.keys(FURN).filter(k=>!FURN[k].gift&&!FURN[k].craft);const f=fs[(hashStr(v.id+lv))%fs.length];
   const rc=(VIL_RECIPES[v.id]||[])[lv-1];
   const msg=['いつも はなしかけてくれて ありがとう！ これからも よろしくね。','{name}と なかよく なれて うれしいよ。 ささやかだけど プレゼント！','{name}は もう だいじな ともだちだよ。 これ、 うけとってね。'][lv-1];
-  const rmsg=rc?`\nそれと、 ${ITEMS[RECIPES[rc].out].name}の つくりかたを かいておいたよ。`:'';
-  S.mailQ.push({from:'vil',sender:v.name,body:`{name}へ\n\n${msg}${rmsg}\n\n${v.name}より`,gift:'f_'+f,n:1,recipe:rc||null});toast(`${v.name}と もっと なかよく なった！`,'paw');addMemory(`${v.name}と もっと なかよく なった`,'paw');}}
+  const rmsg=rc?`\nそれと、 ${ITEMS[RECIPES[rc].out].name}の レシピを かいておいたよ。`:'';
+  Post.hand(v.id,{t:msg+(rc?`\nそれと、 ${ITEMS[RECIPES[rc].out].name}の レシピを おしえてあげる。`:''),items:lv>=2?{['f_'+f]:1}:null,recipes:rc?[rc]:[]});toast(`${v.name}と もっと なかよく なった！`,'paw');addMemory(`${v.name}と もっと なかよく なった`,'paw');}}
  async function talkChief(vo){
   const v=vo.v;const o={name:v.title,por:vilPor('chief'),pitch:v.pitch};const d=S.daily;
   if(!d.talked.chief){d.talked.chief=1;quest('talk');}
@@ -310,7 +319,7 @@ const UI=(()=>{
  // ---------- craft ----------
  function craft(){
   panel('さぎょうだい',body=>{
-   if(!S.recipes.length){body.append(el('div','empty','まだ つくりかたを しらないみたい。'));return;}
+   if(!S.recipes.length){body.append(el('div','empty','まだ レシピを しらないみたい。'));return;}
    const fire=hasJob('fire');body.append(el('div','note',fire?'🔥 ほのおの なかまが いるから りょうりも できるよ':'りょうりには ほのおの なかま（かまど）が ひつよう'));
    const list=el('div','slist');
    S.recipes.forEach(id=>{const R=RECIPES[id];const out=ITEMS[R.out];const r=el('div','srow');r.append(iconOf(R.out));
@@ -321,7 +330,7 @@ const UI=(()=>{
      if(R.fire){const f=bestWorker('fire');if(f){gainExp(f.mon,3);f.e.jump=0.45;}}
      toast(`${out.name}が できた！`,R.out);closePanel(true);craft();save();};r.append(b);list.append(r);});
    body.append(list);
-   body.append(el('div','desc','つくりかたは、 むらの ひとと なかよく なったり、 てがみで おしえて もらえる ことが あるよ。'));
+   body.append(el('div','desc','レシピは、 むらの ひとと なかよく なったり、 てがみで おしえて もらえる ことが あるよ。'));
   });
  }
 
@@ -376,7 +385,7 @@ const UI=(()=>{
   const paper=el('div','paper'+(m.from==='dad'?' dad':''));paper.textContent=fmt(m.body);body.append(paper);
   if((m.gift||m.coins||m.recipe)&&!m.taken){const box=el('div','giftbox');const parts=[];
    if(m.gift){box.append(iconOf(m.gift));parts.push(`${ITEMS[m.gift].name}${m.n>1?' ×'+m.n:''}`);}else if(m.coins){box.append(iconOf('coin'));}
-   if(m.coins)parts.push(`${m.coins}ポカ`);if(m.recipe){if(!m.gift)box.append(iconOf('recipe'));parts.push(`つくりかた：${ITEMS[RECIPES[m.recipe].out].name}`);}
+   if(m.coins)parts.push(`${m.coins}ポカ`);if(m.recipe){if(!m.gift)box.append(iconOf('recipe'));parts.push(`レシピ：${ITEMS[RECIPES[m.recipe].out].name}`);}
    box.append(el('span',null,parts.join('<br>')));
    const b=el('button','btn','うけとる');b.onclick=()=>{m.taken=true;if(m.gift)addItem(m.gift,m.n||1);if(m.coins)addCoins(m.coins);if(m.recipe)learnRecipe(m.recipe);Snd.sfx('get');toast('てがみの おくりものを うけとった！',m.gift||(m.recipe?'recipe':'coin'));closePanel(true);readMail(m);};box.append(b);body.append(box);}
   else if(m.gift||m.coins||m.recipe)body.append(el('div','desc','おくりものは うけとりずみ'));
@@ -434,7 +443,7 @@ const UI=(()=>{
  function canPlace(tx,ty,key=UI_decor.sel){if(!key)return false;const id=ITEMS[key].furn;const F=FURN[id];const w=F.w||1,h=F.h||1;
   if(tx<0||ty<2||tx+w>ROOM_W||ty+h>ROOM_H)return false;
   if(F.floor){return !S.furniture.some(f=>FURN[f.id].floor&&[...Array(w*h)].some((_,i)=>covers(f,tx+i%w,ty+Math.floor(i/w))));}
-  if(G.player.tx===tx&&G.player.ty===ty)return false;return !S.furniture.some(f=>!FURN[f.id].floor&&f.x===tx&&f.y===ty);}
+  if(G.player.tx>=tx&&G.player.tx<tx+w&&G.player.ty>=ty&&G.player.ty<ty+h)return false;return fitsAt(id,tx,ty,S.furniture);}
  function decorTap(tx,ty){if(ty<2||ty>=ROOM_H||tx<0||tx>=ROOM_W)return;const f=furnAt(tx,ty);
   if(UI_decor.sel){if(canPlace(tx,ty)){const id=ITEMS[UI_decor.sel].furn;takeItem(UI_decor.sel);S.furniture.push({id,x:tx,y:ty});Snd.sfx('pop');checkSeries(true);puff(tx*TS+8,ty*TS+8,'#fff6a0',6);if(!itemCount(UI_decor.sel))UI_decor.sel=null;drawDecor();return;}
    if(!f){toast('そこには おけないよ');return;}}

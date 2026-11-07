@@ -16,7 +16,7 @@ for(const k in OUTDOOR){ITEMS['od_'+k]={name:OUTDOOR[k].name,sell:40,cat:'outdoo
 START_RECIPES.push('od_bench','od_stoneroad','od_signpost','od_flowerbed','od_picnic');
 const FOSSILS = ['アンモナイト','さんようちゅう','こはく','ぷちサウルスの あたま','ぷちサウルスの からだ','ぷちサウルスの しっぽ'];
 const RANKS = [0,40,90,150,220];
-const RANK_REWARD = [null,{coins:1000,recipe:'od_olamp',t:'1000ポカと がいとうの つくりかた'},{items:{feast:2},recipe:'od_birdhouse',t:'ごちそうクッキーと ことりの いえの つくりかた'},{items:{w_crown:1},t:'ちいさな おうかん'},{items:{od_statue:1},t:'ぽかぽかさまの ぞう'}];
+const RANK_REWARD = [null,{coins:1000,recipe:'od_olamp',t:'1000ポカと がいとうの レシピ'},{items:{feast:2},recipe:'od_birdhouse',t:'ごちそうクッキーと ことりの いえの レシピ'},{items:{w_crown:1},t:'ちいさな おうかん'},{items:{od_statue:1},t:'ぽかぽかさまの ぞう'}];
 
 function odSpr(id){const k='od_'+id;if(_furn[k])return _furn[k];let g=new Grid(16,16),pal={};
  switch(id){
@@ -81,7 +81,7 @@ const Village=(()=>{
   parts.home=Math.min(20,S.furniture.length)+seriesState().filter(x=>x.done).length*5;
   const total=Object.values(parts).reduce((a,b)=>a+b,0);let rank=0;RANKS.forEach((t,i)=>{if(total>=t)rank=i;});return{parts,total,rank};}
  function checkRank(quiet){const r=score();if(S.rankSeen==null)S.rankSeen=r.rank;if(r.rank>S.rankSeen){S.rankSeen=r.rank;const rw=RANK_REWARD[r.rank];
-   if(rw){if(rw.coins)S.mailQ.length;pushMail({from:'vil',sender:'そんちょう ハルさん',body:`{name}さんへ\n\nむらの ひょうかが ★${r.rank+1}に なったわ！\nみんなの おかげで、 むらが どんどん すてきに なっていく。\nおれいの しるしよ。\n\nそんちょう ハル`,gift:rw.items?Object.keys(rw.items)[0]:null,n:rw.items?Object.values(rw.items)[0]:1,coins:rw.coins||0,recipe:rw.recipe||null});}
+   if(rw){if(rw.coins)S.mailQ.length;pushMail({from:'vil',sender:'そんちょう ハルさん',body:`{name}さんへ\n\nむらの ひょうかが ★${r.rank+1}に なったわ！\nみんなの おかげで、 むらが どんどん すてきに なっていく。\nこんど あったら、 おれいを わたさせてね。\n\nそんちょう ハル`});Post.hand('chief',{t:`むらの ひょうか ★${r.rank+1}、 ほんとうに おめでとう！ これは むらからの おれいよ。`,items:rw.items||null,coins:rw.coins||0,recipes:rw.recipe?[rw.recipe]:[]});}
    addMemory(`むらの ひょうかが ★${r.rank+1}に なった`,'house');if(!quiet)UI.toast(`むらの ひょうかが ★${r.rank+1}に なった！ ポストを みてね`,'house');}}
  async function rateTalk(o){const r=score();const stars='★'.repeat(r.rank+1)+'☆'.repeat(4-r.rank);await UI.say(`いまの むらの ひょうかは ${stars}よ。`,o);
   if(r.rank<4){const lowest=Object.entries(r.parts).sort((a,b)=>a[1]-b[1])[0][0];

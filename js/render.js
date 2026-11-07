@@ -55,7 +55,7 @@ function renderMap(c){
  if(G.player)list.push({y:G.player.py,f:()=>drawPlayer(c,G.player,ox,oy)});
  G.party.forEach((pa,i)=>!pa.hidden&&list.push({y:pa.e.py-0.1,f:()=>drawMonAt(c,pa.mon.sp,pa.e,ox,oy,1.7+i,{look:monLook(pa.mon)})}));
  G.wilds.forEach((w,i)=>{const g=G.world.t[w.e.ty][w.e.tx]==='"';list.push({y:w.e.py,f:()=>drawMonAt(c,w.sp,w.e,ox,oy,i*1.3,{grass:g&&!w.e.moving,look:{shiny:!!(w.enc&&w.enc.shiny)}})});});
- G.vils.forEach(v=>list.push({y:v.e.py,f:()=>{drawVil(c,v,ox,oy);if(v.v.chief&&S&&S.storyReady&&Math.floor(G.t*2)%2)c.drawImage(EXCL,Math.round(v.e.px-ox+7),Math.round(v.e.py-oy-12));}}));
+ G.vils.forEach(v=>list.push({y:v.e.py,f:()=>{drawVil(c,v,ox,oy);if(S&&((v.v.chief&&(S.storyReady||Post.pending('chief')))||(!v.v.chief&&Post.pending(v.v.id)))&&Math.floor(G.t*2)%2)c.drawImage(EXCL,Math.round(v.e.px-ox+7),Math.round(v.e.py-oy-12));}}));
  Village.drawList(list,c,ox,oy);
  list.sort((a,b)=>a.y-b.y);for(const it of list)it.f();
  // overlay trees/lamps
@@ -66,7 +66,7 @@ function renderMap(c){
  for(const k in G.shake){if(k[0]==='t'){const[x,y]=k.slice(1).split(',').map(Number);for(let i=0;i<3;i++){c.fillStyle=S2.trees[0][1];c.fillRect(x*TS-ox+2+((G.t*40+i*5)%12),y*TS-oy-6+i*4,2,2);}}}
  // particles (world)
  drawParts(c,ox,oy);
- Story.drawDeco(c,ox,oy);Mist.draw(c,ox,oy);
+ Story.drawDeco(c,ox,oy);Mist.draw(c,ox,oy);Post.draw(c,ox,oy);
  // weather
  drawWeather(c);
  // lighting
@@ -97,7 +97,7 @@ function drawLighting(c,ox,oy,inside){
    G.wparts.forEach(p=>{if(p.k==='fly')lights.push([p.x+ox,p.y+oy,7,0.6]);});
    G.wilds.forEach(wl=>{const t=SP[wl.sp];const glow=t.type==='hono'||t.id==='hoshinoko'||t.id==='hotarun';lights.push([wl.e.px+8,wl.e.py+6,glow?22:16,glow?0.8:0.6]);});
    G.vils.forEach(v=>lights.push([v.e.px+8,v.e.py+6,14,0.5]));}
-  else{S.furniture.forEach(f=>{if(FURN[f.id].light&&!f.off)lights.push([f.x*TS+8,f.y*TS,56,1]);});lights.push([ROOM_W*TS/2,TS,34,0.5]);}
+  else{(G.scene==='inside'&&G.inside?G.inside.furn:S.furniture).forEach(f=>{if(FURN[f.id].light&&!f.off){const[w]=fdim(f);lights.push([f.x*TS+w*8,f.y*TS,56,1]);}});lights.push([ROOM_W*TS/2,TS,34,0.5]);}
   if(G.player)lights.push([G.player.px+8,G.player.py+8,30,0.55]);
   G.party.forEach(pa=>{const t=SP[pa.mon.sp].type;const j=jobOf(pa.mon.sp);if(j==='fire')lights.push([pa.e.px+8,pa.e.py+6,40,0.9]);else if(t==='denki'||t==='yozora')lights.push([pa.e.px+8,pa.e.py+6,24,0.7]);else lights.push([pa.e.px+8,pa.e.py+6,12,0.4]);});
   L.globalCompositeOperation='destination-out';
@@ -118,11 +118,10 @@ function renderHouse(c){
  drawRoom(c,X,Y,ROOM_W,ROOM_H,skyCol(),G.weather,G.season,S.wall,S.floor);
  const list=[];
  for(const f of S.furniture.filter(f=>FURN[f.id].floor))c.drawImage(furnSpr(f.id),X+f.x*TS-2,Y+f.y*TS-2);
- for(const f of S.furniture){if(FURN[f.id].floor)continue;const spr=furnSpr(f.id);const h=spr.height-4;const dx=X+f.x*TS-2+Math.round((16-(spr.width-4))/2),dy=Y+f.y*TS+16-h-2;
-  list.push({y:f.y*TS,f:()=>{c.drawImage(spr,dx+Math.round(f._ox||0),dy+Math.round(f._oy||0));if(f._stack)drawStack(c,dx,dy,f._stack);if(f.id==='clock'){const d=NOW();const cx=X+f.x*TS+8,cy=dy+2+5.5;hand(c,cx,cy,(d.getHours()%12+d.getMinutes()/60)/12,2);hand(c,cx,cy,d.getMinutes()/60,3);}
-   if(f.id==='tv'){c.fillStyle=`hsl(${(G.t*40)%360},70%,75%)`;c.fillRect(dx+5,dy+5,3,2);}}});}
+ for(const f of S.furniture){if(FURN[f.id].floor)continue;list.push(furnItem(c,f,X,Y));}
  if(G.player)list.push({y:G.player.py+1,f:()=>drawPlayer(c,G.player,ox,oy)});
  housePets().forEach((pa,i)=>list.push({y:petSortY(pa),f:()=>drawHousePet(c,pa,ox,oy,i)}));
+ Post.houseGuest(list,c,ox,oy);
  list.sort((a,b)=>a.y-b.y);for(const it of list)it.f();
  drawParts(c,ox,oy);
  drawLighting(c,ox,oy,true);
@@ -136,7 +135,7 @@ function render(){
  const c=G.ctx;c.fillStyle='#1d1b2a';c.fillRect(0,0,G.vw,G.vh);
  if(!G.layers)return;
  if(!G.ready){G.cam.x=(Math.sin(G.t*0.05)*0.5+0.5)*(G.world.W*TS-G.vw);G.cam.y=12*TS-G.vh*0.3+Math.sin(G.t*0.07)*40;renderMap(c);return;}
- if(G.scene==='map')renderMap(c);else renderHouse(c);
+ if(G.scene==='map')renderMap(c);else if(G.scene==='inside')Inside.render(c);else renderHouse(c);
 }
 
 let _last=0,_wf=0;

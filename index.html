@@ -72,6 +72,8 @@ button{font-family:inherit;color:var(--ink);cursor:pointer;}
 @keyframes tin{from{transform:scale(.8);opacity:0;}}
 /* panels */
 #panels{position:fixed;inset:0;z-index:20;pointer-events:none;}
+body.inshop #btnDecor,body.inshop #btnWard{display:none;}
+.bbtn.on{background:#ffe08a;transform:translateY(-2px);}
 .panel{position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 56px);bottom:calc(env(safe-area-inset-bottom) + 72px);display:flex;flex-direction:column;pointer-events:auto;animation:pin .2s;}
 @keyframes pin{from{transform:translateY(16px);opacity:0;}}
 .phead{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-bottom:3px dashed #e0cfa8;}
@@ -179,6 +181,13 @@ button{font-family:inherit;color:var(--ink);cursor:pointer;}
 #camBtn{position:fixed;right:10px;top:calc(env(safe-area-inset-top) + 50px);z-index:5;width:46px;height:46px;border-radius:50%;background:rgba(255,248,230,.96);border:3px solid var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:0;}
 #camBtn:active{transform:translateY(2px);}
 body.pre #camBtn{display:none;}
+#skyBtn{position:fixed;right:10px;top:calc(env(safe-area-inset-top) + 102px);z-index:5;width:46px;height:46px;border-radius:50%;background:rgba(220,240,255,.96);border:3px solid var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.35);font-size:22px;padding:0;}
+body.pre #skyBtn,body.inhouse #skyBtn{display:none;}
+.skyov{position:fixed;inset:0;z-index:40;background:#000;animation:fin .3s;}
+.skycv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;}
+.skymsg{position:absolute;left:10px;right:10px;top:calc(env(safe-area-inset-top) + 10px);padding:8px 12px;font-size:14px;line-height:1.6;}
+.btn.skyact{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 90px);font-size:20px;padding:12px 22px;width:auto;margin:0;animation:pin .2s;}
+.btn.skyback{position:absolute;right:10px;bottom:calc(env(safe-area-inset-bottom) + 20px);width:auto;margin:0;}
 body.inhouse #camBtn{top:auto;bottom:calc(env(safe-area-inset-bottom) + 76px);}
 .chips{display:flex;flex-wrap:wrap;gap:5px;margin:4px 0;}
 .chipb{padding:6px 9px;font-size:13px;border:2px solid var(--ink);border-radius:14px;background:#fff;}
@@ -280,30 +289,32 @@ body.pre #hud,body.pre #bar,body.pre #toolBtn{display:none;}
 <div id="decor" class="win hidden"><div id="decorList"></div></div>
 <div id="bar"></div>
 <button id="toolBtn" class="hidden"></button>
-<button id="camBtn"></button>
+<button id="camBtn"></button><button id="skyBtn" title="そらを みあげる">☁</button>
 <div id="panels"></div>
 <div id="overlay"></div>
 <div id="dlg" class="win hidden"><div class="dname"></div><div class="dpor hidden"></div><div class="dtext nokj"></div><div class="dnext hidden">▼</div><div class="dchoices hidden"></div></div>
 <div id="toasts"></div>
 <div id="fade"></div>
-<script src="js/data.js?v=8"></script>
-<script src="js/life_data.js?v=8"></script>
-<script src="js/style_data.js?v=8"></script>
-<script src="js/story_data.js?v=8"></script>
-<script src="js/mini_data.js?v=8"></script>
-<script src="js/gfx.js?v=8"></script>
-<script src="js/audio.js?v=8"></script>
-<script src="js/game.js?v=8"></script>
-<script src="js/life.js?v=8"></script>
-<script src="js/style.js?v=8"></script>
-<script src="js/ui.js?v=8"></script>
-<script src="js/style_ui.js?v=8"></script>
-<script src="js/story.js?v=8"></script>
-<script src="js/mini.js?v=8"></script>
-<script src="js/bakery.js?v=8"></script>
-<script src="js/village.js?v=8"></script>
-<script src="js/kanji.js?v=8"></script>
-<script src="js/mist.js?v=8"></script>
-<script src="js/render.js?v=8"></script>
+<script src="js/data.js?v=10"></script>
+<script src="js/life_data.js?v=10"></script>
+<script src="js/style_data.js?v=10"></script>
+<script src="js/story_data.js?v=10"></script>
+<script src="js/mini_data.js?v=10"></script>
+<script src="js/gfx.js?v=10"></script>
+<script src="js/audio.js?v=10"></script>
+<script src="js/game.js?v=10"></script>
+<script src="js/life.js?v=10"></script>
+<script src="js/style.js?v=10"></script>
+<script src="js/ui.js?v=10"></script>
+<script src="js/style_ui.js?v=10"></script>
+<script src="js/story.js?v=10"></script>
+<script src="js/mini.js?v=10"></script>
+<script src="js/bakery.js?v=10"></script>
+<script src="js/village.js?v=10"></script>
+<script src="js/kanji.js?v=10"></script>
+<script src="js/mist.js?v=10"></script>
+<script src="js/house2.js?v=10"></script>
+<script src="js/post.js?v=10"></script>
+<script src="js/render.js?v=10"></script>
 </body>
 </html>
